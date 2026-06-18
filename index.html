@@ -1136,6 +1136,7 @@ EPIS.forEach((epi, i) => {
 // Chave = CNPJ ou CPF sem pontuação (só números)
 // pass = senha codificada. Para gerar: abra o console (F12) e digite btoa('suaSenha')
 const CLIENTS = {
+  '00000000000': { name: 'Empresa Demo — Ativar HSE', pass: btoa('00000000000'), nicho: 'construcao', gr: 3, courses: ['nr35','epi','incendio','nr18'], fispqs: ['construcao','combustiveis'] },
   '00000000000000': { name: 'Empresa Demo', pass: 'ZGVtbzIwMjQ=', courses: ['nr35','epi','incendio'] },
   // Exemplo — descomente e adapte para cada cliente:
   // '12345678000195': { name: 'Fazenda São João', pass: btoa('senhaCliente1'), courses: ['nr35','epi'] },
