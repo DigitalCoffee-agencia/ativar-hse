@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Canal de Denúncias</title>
+<script id="injected-config">window.__CONFIG__ = null;</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --c-primaria: #1A365D; --c-secundaria: #C05621; }
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .bg-primaria { background-color: var(--c-primaria); }
+  .bg-secundaria { background-color: var(--c-secundaria); }
+  .text-primaria { color: var(--c-primaria); }
+  .text-secundaria { color: var(--c-secundaria); }
+  .border-primaria { border-color: var(--c-primaria); }
+  .border-secundaria { border-color: var(--c-secundaria); }
+  .hover-secundaria:hover { background-color: var(--c-secundaria); filter: brightness(0.92); }
+  .gradient-primaria { background: linear-gradient(135deg, var(--c-primaria) 0%, color-mix(in srgb, var(--c-primaria) 75%, white) 100%); }
+  .step-active { background: var(--c-secundaria); color: white; }
+  .step-pending { background: #E2E8F0; color: #4A5568; }
+  .step-done { background: #276749; color: white; }
+  .toast { animation: slideIn 0.3s ease-out; }
+  @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  details > summary { cursor: pointer; list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] summary svg { transform: rotate(180deg); }
+  .input-err { border-color: #9B2C2C !important; background: #FED7D7; }
+  .destaque-bg { background: color-mix(in srgb, var(--c-secundaria) 12%, white); }
+  .destaque-border { border-color: var(--c-secundaria); }
+  @media print { .no-print { display: none !important; } }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-700 min-h-screen">
+
+<!-- ========== HEADER ========== -->
+<header class="gradient-primaria text-white shadow-lg no-print">
+  <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <img id="logoImg" class="hidden h-12 w-auto rounded" />
+      <div>
+        <div class="text-xs uppercase tracking-widest font-semibold opacity-90">Canal de Denúncias e Manifestações</div>
+        <h1 class="text-3xl md:text-4xl font-bold mt-1" data-bind="empresa">[Nome da Empresa]</h1>
+        <p class="text-sm opacity-90 mt-1">Sigilo absoluto · Anonimato disponível · Vedação de retaliação · Acolhimento psicológico custeado</p>
+      </div>
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="goto('home')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium transition">Início</button>
+      <button onclick="goto('consulta')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium transition">Consultar protocolo</button>
+      <button onclick="goto('faq')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium transition">FAQ</button>
+    </div>
+  </div>
+</header>
+
+<div id="toast" class="hidden fixed top-4 right-4 z-50 toast"></div>
+
+<!-- ========== HOME ========== -->
+<main id="view-home" class="max-w-6xl mx-auto px-4 py-10 hidden">
+  <section class="grid md:grid-cols-2 gap-8 items-start">
+    <div>
+      <h2 class="text-3xl font-bold text-primaria mb-4">Você tem um caminho seguro para falar.</h2>
+      <p class="text-lg leading-relaxed mb-6">
+        Use este canal para relatar assédio, discriminação, fraude, riscos psicossociais ou qualquer
+        violação ao nosso Código de Conduta. Você pode se identificar ou permanecer anônimo —
+        em qualquer caso, receberá um protocolo único para acompanhamento.
+      </p>
+      <div class="space-y-3 mb-6">
+        <div class="flex items-start gap-3"><span class="text-green-700 font-bold text-xl">✓</span><span>Sigilo profissional · sua identidade fica restrita ao Comitê de Ética</span></div>
+        <div class="flex items-start gap-3"><span class="text-green-700 font-bold text-xl">✓</span><span>Anonimato disponível · você pode não se identificar</span></div>
+        <div class="flex items-start gap-3"><span class="text-green-700 font-bold text-xl">✓</span><span>Vedação de retaliação · punida com demissão por justa causa</span></div>
+        <div class="flex items-start gap-3"><span class="text-green-700 font-bold text-xl">✓</span><span>Acolhimento psicológico custeado pela empresa</span></div>
+        <div class="flex items-start gap-3"><span class="text-green-700 font-bold text-xl">✓</span><span>Direito de recurso interno em 5 dias úteis</span></div>
+      </div>
+      <button onclick="goto('formulario')"
+              class="bg-secundaria text-white font-bold px-8 py-4 rounded-lg text-lg shadow-lg transition transform hover:-translate-y-0.5 hover-secundaria">
+        Registrar denúncia ou pedido de apoio →
+      </button>
+    </div>
+    <div class="bg-white rounded-2xl p-6 shadow-md border border-gray-100">
+      <h3 class="text-xl font-bold text-primaria mb-4">Em risco grave?</h3>
+      <p class="text-sm mb-4">Se há risco imediato à sua vida ou à de alguém, não espere por este formulário. Ligue agora:</p>
+      <ul class="space-y-3">
+        <li class="flex items-center gap-3 p-3 bg-red-100 rounded-lg">
+          <span class="font-bold text-red-800 text-2xl">192</span>
+          <span class="text-sm">SAMU · emergência médica/psiquiátrica</span>
+        </li>
+        <li class="flex items-center gap-3 p-3 destaque-bg rounded-lg">
+          <span class="font-bold text-secundaria text-2xl">188</span>
+          <span class="text-sm">CVV · Centro de Valorização da Vida (24h, gratuito)</span>
+        </li>
+        <li class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+          <span class="font-bold text-primaria text-base">Apoio Psi interno</span>
+          <span class="text-sm" data-bind="apoioPsi">Ramal ___ / WhatsApp ___</span>
+        </li>
+        <li class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+          <span class="font-bold text-primaria text-base">Conselho Tutelar</span>
+          <span class="text-sm">100 (Disque Direitos Humanos)</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="mt-12 bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+    <h3 class="text-2xl font-bold text-primaria mb-6">Como funciona o seu caso</h3>
+    <ol class="grid md:grid-cols-5 gap-4">
+      <li class="text-center"><div class="step-done w-12 h-12 rounded-full mx-auto flex items-center justify-center font-bold mb-2">1</div><p class="font-semibold text-sm text-primaria">Registro</p><p class="text-xs mt-1">Protocolo gerado automaticamente</p></li>
+      <li class="text-center"><div class="step-done w-12 h-12 rounded-full mx-auto flex items-center justify-center font-bold mb-2">2</div><p class="font-semibold text-sm text-primaria">Triagem</p><p class="text-xs mt-1">Em até 5 dias úteis</p></li>
+      <li class="text-center"><div class="step-done w-12 h-12 rounded-full mx-auto flex items-center justify-center font-bold mb-2">3</div><p class="font-semibold text-sm text-primaria">Investigação</p><p class="text-xs mt-1">30 a 60 dias com contraditório</p></li>
+      <li class="text-center"><div class="step-done w-12 h-12 rounded-full mx-auto flex items-center justify-center font-bold mb-2">4</div><p class="font-semibold text-sm text-primaria">Decisão</p><p class="text-xs mt-1">Parecer colegiado do Comitê</p></li>
+      <li class="text-center"><div class="step-done w-12 h-12 rounded-full mx-auto flex items-center justify-center font-bold mb-2">5</div><p class="font-semibold text-sm text-primaria">Feedback</p><p class="text-xs mt-1">Você é informado do desfecho</p></li>
+    </ol>
+  </section>
+
+  <section class="mt-12 grid md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-xl p-6 shadow border-l-4 border-secundaria">
+      <h4 class="font-bold text-primaria mb-2">Outros canais</h4>
+      <p class="text-sm">E-mail: <span data-bind="email">canal.etica@empresa.com.br</span></p>
+      <p class="text-sm">Telefone: <span data-bind="telefone">0800 ___ ____</span></p>
+      <p class="text-sm">Caixa física: recepção</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow border-l-4 border-green-700">
+      <h4 class="font-bold text-primaria mb-2">Conformidade</h4>
+      <p class="text-sm">Lei 14.457/2022 · NR-01 (1.5)</p>
+      <p class="text-sm">Lei 12.846/2013 · Lei 14.811/2024</p>
+      <p class="text-sm">LGPD · Resoluções ANPD</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow border-l-4 border-primaria">
+      <h4 class="font-bold text-primaria mb-2">Encarregado de Dados</h4>
+      <p class="text-sm" data-bind="dpoNome">[Nome do DPO]</p>
+      <p class="text-sm" data-bind="dpoEmail">dpo@empresa.com.br</p>
+      <p class="text-sm">Direitos do titular: <a href="#" onclick="goto('faq');return false;" class="text-secundaria font-medium">clique aqui</a></p>
+    </div>
+  </section>
+</main>
+
+<!-- ========== FORMULÁRIO ========== -->
+<main id="view-formulario" class="hidden max-w-3xl mx-auto px-4 py-10">
+  <button onclick="goto('home')" class="text-sm text-primaria hover:underline mb-4">← Voltar</button>
+  <h2 class="text-3xl font-bold text-primaria mb-2">Registro de manifestação</h2>
+  <p class="mb-8 text-sm">Preencha apenas os campos que você quiser. Você pode permanecer anônimo. Ao final, receberá um protocolo único.</p>
+
+  <div class="flex justify-between mb-8 gap-2">
+    <div class="flex-1 text-center"><div id="s1" class="step-active w-10 h-10 rounded-full mx-auto flex items-center justify-center font-bold mb-2">1</div><p class="text-xs">Tipo</p></div>
+    <div class="flex-1 text-center"><div id="s2" class="step-pending w-10 h-10 rounded-full mx-auto flex items-center justify-center font-bold mb-2">2</div><p class="text-xs">Identificação</p></div>
+    <div class="flex-1 text-center"><div id="s3" class="step-pending w-10 h-10 rounded-full mx-auto flex items-center justify-center font-bold mb-2">3</div><p class="text-xs">Relato</p></div>
+    <div class="flex-1 text-center"><div id="s4" class="step-pending w-10 h-10 rounded-full mx-auto flex items-center justify-center font-bold mb-2">4</div><p class="text-xs">Confirmação</p></div>
+  </div>
+
+  <form id="form" onsubmit="return false;" class="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+    <div id="step1">
+      <h3 class="text-xl font-bold text-primaria mb-4">Sobre o que você quer falar?</h3>
+      <div class="grid md:grid-cols-2 gap-3 mb-6" id="tipos-grid">
+        <!-- gerado em JS -->
+      </div>
+      <button type="button" onclick="next(1)" class="w-full bg-secundaria text-white font-bold py-3 rounded-lg transition hover-secundaria">Continuar →</button>
+    </div>
+
+    <div id="step2" class="hidden">
+      <h3 class="text-xl font-bold text-primaria mb-2">Você quer se identificar?</h3>
+      <p class="text-sm mb-6">Identificar facilita o acolhimento e a investigação. <strong>Mas você pode permanecer anônimo</strong> — o procedimento corre normalmente, e você acompanha pelo protocolo.</p>
+      <div class="space-y-3 mb-6">
+        <label class="block cursor-pointer"><input type="radio" name="identificacao" value="identificado" class="hidden peer" required>
+          <div class="border-2 border-gray-200 peer-checked:destaque-border peer-checked:destaque-bg rounded-lg p-4 transition">
+            <div class="font-semibold text-primaria">Quero me identificar</div>
+            <div class="text-xs">Você fornecerá nome, vínculo e contato. Sigilo absoluto garantido.</div>
+          </div></label>
+        <label class="block cursor-pointer"><input type="radio" name="identificacao" value="anonimo" class="hidden peer">
+          <div class="border-2 border-gray-200 peer-checked:destaque-border peer-checked:destaque-bg rounded-lg p-4 transition">
+            <div class="font-semibold text-primaria">Prefiro permanecer anônimo</div>
+            <div class="text-xs">Você só receberá um protocolo. O Comitê não conseguirá te procurar — você acompanha por aqui.</div>
+          </div></label>
+      </div>
+      <div id="campos-identificado" class="hidden space-y-4">
+        <div><label class="block text-sm font-medium text-primaria mb-1">Nome completo</label>
+          <input type="text" id="nome" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div><label class="block text-sm font-medium text-primaria mb-1">E-mail</label>
+            <input type="email" id="email-id" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+          <div><label class="block text-sm font-medium text-primaria mb-1">Telefone (opcional)</label>
+            <input type="tel" id="telefone-id" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+        </div>
+        <div><label class="block text-sm font-medium text-primaria mb-1">Vínculo com a empresa</label>
+          <select id="vinculo" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none">
+            <option value="">Selecione...</option><option>Colaborador efetivo</option><option>Estagiário/Aprendiz</option><option>Terceirizado</option><option>Prestador de serviço</option><option>Ex-colaborador</option><option>Cliente</option><option>Fornecedor</option><option>Familiar</option><option>Outro</option>
+          </select></div>
+        <div><label class="inline-flex items-center gap-2 mt-1"><input type="checkbox" id="lgpd" class="w-4 h-4">
+          <span class="text-xs">Li e concordo com a Política de Privacidade do Canal · LGPD art. 7º II/IV/VI/IX</span></label></div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button type="button" onclick="back(2)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-primaria font-bold py-3 rounded-lg">← Voltar</button>
+        <button type="button" onclick="next(2)" class="flex-1 bg-secundaria text-white font-bold py-3 rounded-lg hover-secundaria">Continuar →</button>
+      </div>
+    </div>
+
+    <div id="step3" class="hidden">
+      <h3 class="text-xl font-bold text-primaria mb-4">Conte o que aconteceu</h3>
+      <div class="space-y-4">
+        <div><label class="block text-sm font-medium text-primaria mb-1">Relato livre <span class="text-red-600">*</span></label>
+          <textarea id="relato" rows="8" required class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"
+                    placeholder="Descreva com suas palavras o que aconteceu, quem estava envolvido, quando e onde."></textarea>
+          <p class="text-xs mt-1">Mínimo 50 caracteres. Sigilo do conteúdo é absoluto.</p></div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div><label class="block text-sm font-medium text-primaria mb-1">Quando aproximadamente?</label>
+            <input type="text" id="quando" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none" placeholder="Ex: nos últimos 3 meses"></div>
+          <div><label class="block text-sm font-medium text-primaria mb-1">Onde?</label>
+            <input type="text" id="onde" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none" placeholder="Ex: unidade São Paulo"></div>
+        </div>
+        <div><label class="block text-sm font-medium text-primaria mb-1">Houve testemunha?</label>
+          <input type="text" id="testemunhas" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none" placeholder="Quantidade ou contexto também ajuda."></div>
+        <div class="destaque-bg p-4 rounded-lg">
+          <label class="inline-flex items-start gap-2"><input type="checkbox" id="acolhimento" class="w-4 h-4 mt-1">
+            <span class="text-sm">Quero receber acolhimento psicológico custeado pela empresa (até 6 sessões), independentemente do desfecho.</span></label></div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button type="button" onclick="back(3)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-primaria font-bold py-3 rounded-lg">← Voltar</button>
+        <button type="button" onclick="next(3)" class="flex-1 bg-secundaria text-white font-bold py-3 rounded-lg hover-secundaria">Revisar e enviar →</button>
+      </div>
+    </div>
+
+    <div id="step4" class="hidden">
+      <h3 class="text-xl font-bold text-primaria mb-4">Confirme antes de enviar</h3>
+      <div id="resumo" class="bg-gray-50 border-2 border-gray-100 rounded-lg p-5 space-y-2 mb-6 text-sm"></div>
+      <div class="bg-green-100 border-l-4 border-green-700 p-4 rounded mb-6">
+        <p class="text-sm text-green-800 font-medium">Após enviar, você receberá um <strong>protocolo único</strong>. Use-o para consultar o status e dialogar com o Comitê em segurança.</p>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" onclick="back(4)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-primaria font-bold py-3 rounded-lg">← Editar</button>
+        <button type="button" onclick="enviar()" class="flex-1 bg-green-700 hover:bg-green-800 text-white font-bold py-3 rounded-lg">Enviar denúncia</button>
+      </div>
+    </div>
+  </form>
+</main>
+
+<!-- ========== SUCESSO ========== -->
+<main id="view-sucesso" class="hidden max-w-2xl mx-auto px-4 py-12 text-center">
+  <div class="bg-white rounded-2xl shadow-lg p-10 border border-gray-100">
+    <div class="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6">
+      <svg class="w-10 h-10 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+    </div>
+    <h2 class="text-3xl font-bold text-primaria mb-2">Recebido com segurança.</h2>
+    <p class="mb-6 text-lg">Sua manifestação foi registrada. Guarde este protocolo:</p>
+    <div class="bg-primaria text-white text-3xl font-bold tracking-widest py-4 rounded-lg mb-6" id="protocoloGerado">—</div>
+    <p class="text-sm mb-6">Use o protocolo para consultar o status, dialogar com o Comitê e exercer recurso interno se necessário. <strong>Anote ou imprima esta tela.</strong></p>
+    <div class="grid md:grid-cols-2 gap-3">
+      <button onclick="window.print()" class="bg-primaria text-white font-bold py-3 rounded-lg">Imprimir protocolo</button>
+      <button onclick="goto('home')" class="bg-gray-100 hover:bg-gray-200 text-primaria font-bold py-3 rounded-lg">Voltar ao início</button>
+    </div>
+    <div class="mt-8 pt-6 border-t border-gray-100 text-left">
+      <h4 class="font-bold text-primaria mb-3">Próximos passos</h4>
+      <ol class="space-y-2 text-sm">
+        <li><strong>Em até 48h</strong> — confirmação formal de recebimento.</li>
+        <li><strong>Em até 5 dias úteis</strong> — triagem e tipificação pelo Coordenador do Comitê.</li>
+        <li><strong>Em 30 a 60 dias</strong> — investigação concluída com contraditório.</li>
+        <li><strong>Após o desfecho</strong> — feedback formal a você por canal seguro.</li>
+      </ol>
+    </div>
+  </div>
+</main>
+
+<!-- ========== CONSULTA ========== -->
+<main id="view-consulta" class="hidden max-w-2xl mx-auto px-4 py-12">
+  <button onclick="goto('home')" class="text-sm text-primaria hover:underline mb-4">← Voltar</button>
+  <h2 class="text-3xl font-bold text-primaria mb-4">Consultar protocolo</h2>
+  <p class="text-sm mb-6">Digite o protocolo recebido no momento do registro para consultar o status atual da sua manifestação.</p>
+  <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-100">
+    <input type="text" id="consultaProtocolo" placeholder="SOC-AAAA-NNNN" class="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 text-center text-lg tracking-widest focus:border-secundaria focus:outline-none">
+    <button onclick="consultar()" class="w-full bg-secundaria text-white font-bold py-3 rounded-lg hover-secundaria">Consultar</button>
+    <div id="resultadoConsulta" class="mt-6"></div>
+  </div>
+</main>
+
+<!-- ========== FAQ ========== -->
+<main id="view-faq" class="hidden max-w-3xl mx-auto px-4 py-12">
+  <button onclick="goto('home')" class="text-sm text-primaria hover:underline mb-4">← Voltar</button>
+  <h2 class="text-3xl font-bold text-primaria mb-6">Perguntas frequentes</h2>
+  <div class="space-y-3" id="faq-container"></div>
+</main>
+
+<!-- ========== SETUP WIZARD ========== -->
+<main id="view-setup" class="hidden max-w-7xl mx-auto px-4 py-8">
+  <div class="bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-2xl p-6 mb-6 shadow-lg">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-80">Painel de configuração</div>
+        <h2 class="text-2xl font-bold mt-1">Setup Wizard · Kit SOC-01</h2>
+        <p class="text-sm opacity-90 mt-1">Personalize o canal e exporte uma versão pronta para deploy.</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="goto('home')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium">Ver preview</button>
+        <button onclick="exportarHTML()" class="bg-secundaria text-white font-bold px-5 py-2 rounded-lg hover-secundaria">⬇ Exportar HTML personalizado</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-2 gap-6">
+    <!-- Formulário -->
+    <div class="bg-white rounded-2xl p-6 shadow border border-gray-100">
+      <h3 class="text-lg font-bold text-primaria mb-4">Dados da empresa</h3>
+      <div class="space-y-4">
+        <div><label class="block text-sm font-medium text-primaria mb-1">Nome da empresa (razão social)</label>
+          <input type="text" id="cfg-empresa" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+        <div class="grid md:grid-cols-2 gap-3">
+          <div><label class="block text-sm font-medium text-primaria mb-1">E-mail do canal</label>
+            <input type="email" id="cfg-email" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+          <div><label class="block text-sm font-medium text-primaria mb-1">Telefone hotline</label>
+            <input type="text" id="cfg-telefone" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+        </div>
+        <div><label class="block text-sm font-medium text-primaria mb-1">Apoio Psi interno (ramal/WhatsApp)</label>
+          <input type="text" id="cfg-apoioPsi" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+      </div>
+
+      <h3 class="text-lg font-bold text-primaria mt-6 mb-4">Encarregado de Dados (DPO)</h3>
+      <div class="grid md:grid-cols-2 gap-3">
+        <div><label class="block text-sm font-medium text-primaria mb-1">Nome</label>
+          <input type="text" id="cfg-dpoNome" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+        <div><label class="block text-sm font-medium text-primaria mb-1">E-mail</label>
+          <input type="email" id="cfg-dpoEmail" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none"></div>
+      </div>
+
+      <h3 class="text-lg font-bold text-primaria mt-6 mb-4">Identidade visual</h3>
+      <div class="grid md:grid-cols-2 gap-3 mb-3">
+        <div><label class="block text-sm font-medium text-primaria mb-1">Cor primária</label>
+          <div class="flex gap-2"><input type="color" id="cfg-corPrimaria-pick" class="h-12 w-16 rounded cursor-pointer border-2 border-gray-200">
+            <input type="text" id="cfg-corPrimaria" class="flex-1 border-2 border-gray-200 rounded-lg p-3 font-mono text-sm focus:border-secundaria focus:outline-none"></div></div>
+        <div><label class="block text-sm font-medium text-primaria mb-1">Cor secundária</label>
+          <div class="flex gap-2"><input type="color" id="cfg-corSecundaria-pick" class="h-12 w-16 rounded cursor-pointer border-2 border-gray-200">
+            <input type="text" id="cfg-corSecundaria" class="flex-1 border-2 border-gray-200 rounded-lg p-3 font-mono text-sm focus:border-secundaria focus:outline-none"></div></div>
+      </div>
+      <div><label class="block text-sm font-medium text-primaria mb-1">Logo (opcional · PNG/JPG até 200KB)</label>
+        <input type="file" id="cfg-logoFile" accept="image/png,image/jpeg" class="w-full text-sm">
+        <div class="text-xs text-gray-500 mt-1">A logo será embutida no HTML como base64 — sem dependência externa.</div>
+        <button onclick="removerLogo()" id="btnRemoverLogo" class="hidden mt-2 text-xs text-red-700 underline">Remover logo</button></div>
+
+      <h3 class="text-lg font-bold text-primaria mt-6 mb-4">Acesso administrativo</h3>
+      <div><label class="block text-sm font-medium text-primaria mb-1">Senha do painel admin <span class="text-xs text-gray-500">(mínimo 8 caracteres · será exigida em ?admin=1 e ?setup=1)</span></label>
+        <input type="password" id="cfg-senhaAdmin" class="w-full border-2 border-gray-200 rounded-lg p-3 focus:border-secundaria focus:outline-none" placeholder="Deixe em branco para manter a atual"></div>
+
+      <div class="mt-6 flex gap-3">
+        <button onclick="salvarConfig()" class="flex-1 bg-green-700 hover:bg-green-800 text-white font-bold py-3 rounded-lg">💾 Salvar configuração</button>
+        <button onclick="resetarConfig()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-3 px-5 rounded-lg">Reset</button>
+      </div>
+
+      <div class="mt-6 p-4 bg-blue-50 border-l-4 border-primaria rounded text-sm">
+        <strong class="text-primaria">Após salvar:</strong> recarregue a página (F5) ou clique em "Ver preview". Para distribuir ao cliente, clique em <strong>Exportar HTML personalizado</strong> no topo — você baixa um arquivo único com tudo embutido.
+      </div>
+    </div>
+
+    <!-- Preview ao vivo -->
+    <div class="bg-white rounded-2xl p-6 shadow border border-gray-100 sticky top-4 max-h-[80vh] overflow-y-auto">
+      <h3 class="text-lg font-bold text-primaria mb-4">Preview em tempo real</h3>
+      <div id="preview" class="border-2 border-gray-100 rounded-lg overflow-hidden">
+        <div id="preview-header" class="p-4 text-white">
+          <img id="preview-logo" class="hidden h-8 mb-2 rounded">
+          <div class="text-[10px] uppercase tracking-widest opacity-80">Canal de Denúncias</div>
+          <div id="preview-empresa" class="text-xl font-bold">[Nome da Empresa]</div>
+        </div>
+        <div class="p-4 space-y-2 text-sm">
+          <p>📞 <span id="preview-telefone">0800 ___ ____</span></p>
+          <p>📧 <span id="preview-email">canal.etica@empresa.com.br</span></p>
+          <p>👤 DPO · <span id="preview-dpoNome">[Nome do DPO]</span> · <span id="preview-dpoEmail">dpo@empresa.com.br</span></p>
+          <p>🧠 Apoio Psi · <span id="preview-apoioPsi">Ramal ___</span></p>
+          <button id="preview-btn" class="mt-3 text-white font-bold px-4 py-2 rounded-lg text-sm">Registrar denúncia →</button>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 mt-3">Para ver o canal completo, salve e clique em "Ver preview" no topo.</p>
+    </div>
+  </div>
+</main>
+
+<!-- ========== ADMIN ========== -->
+<main id="view-admin" class="hidden max-w-6xl mx-auto px-4 py-8">
+  <div class="bg-gradient-to-r from-red-900 to-red-700 text-white rounded-2xl p-6 mb-6 shadow-lg">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <div class="text-xs uppercase tracking-widest opacity-80">Painel restrito · Comitê de Ética</div>
+        <h2 class="text-2xl font-bold mt-1">Denúncias recebidas</h2>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="goto('home')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium">Sair</button>
+        <button onclick="exportarDenuncias()" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-medium">⬇ Exportar JSON</button>
+      </div>
+    </div>
+  </div>
+  <div class="bg-white rounded-2xl shadow p-6 border border-gray-100">
+    <div class="mb-4 flex justify-between items-center flex-wrap gap-2">
+      <div><strong id="admin-count">0</strong> denúncia(s) registrada(s) neste navegador</div>
+      <div class="text-xs text-gray-500">⚠ Dados em localStorage · este navegador apenas. Para visão centralizada, migrar para Camada 4 (SaaS).</div>
+    </div>
+    <div id="admin-list" class="space-y-3"></div>
+  </div>
+</main>
+
+<!-- ========== AUTENTICAÇÃO (admin/setup) ========== -->
+<main id="view-auth" class="hidden max-w-md mx-auto px-4 py-20">
+  <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div class="w-16 h-16 mx-auto bg-primaria rounded-full flex items-center justify-center mb-4">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+    </div>
+    <h2 class="text-2xl font-bold text-primaria text-center mb-2">Acesso restrito</h2>
+    <p class="text-sm text-center mb-6" id="auth-msg">Digite a senha do painel.</p>
+    <input type="password" id="auth-senha" class="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 focus:border-secundaria focus:outline-none" placeholder="Senha">
+    <button onclick="autenticar()" class="w-full bg-secundaria text-white font-bold py-3 rounded-lg hover-secundaria">Entrar</button>
+    <p class="text-xs text-gray-500 mt-4 text-center" id="auth-hint"></p>
+  </div>
+</main>
+
+<!-- ========== PRIMEIRO ACESSO ========== -->
+<main id="view-onboard" class="hidden max-w-md mx-auto px-4 py-20">
+  <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <h2 class="text-2xl font-bold text-primaria mb-2">Bem-vindo ao Kit SOC-01</h2>
+    <p class="text-sm mb-6">Defina uma senha de administrador para começar. Você vai usá-la sempre que entrar no painel de configuração ou no admin.</p>
+    <label class="block text-sm font-medium text-primaria mb-1">Senha de admin <span class="text-xs text-gray-500">(mínimo 8 caracteres)</span></label>
+    <input type="password" id="onboard-senha" class="w-full border-2 border-gray-200 rounded-lg p-3 mb-3 focus:border-secundaria focus:outline-none">
+    <label class="block text-sm font-medium text-primaria mb-1">Confirmar senha</label>
+    <input type="password" id="onboard-senha2" class="w-full border-2 border-gray-200 rounded-lg p-3 mb-4 focus:border-secundaria focus:outline-none">
+    <button onclick="definirSenhaInicial()" class="w-full bg-secundaria text-white font-bold py-3 rounded-lg hover-secundaria">Definir senha e abrir configuração</button>
+  </div>
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="bg-primaria text-white mt-16 no-print">
+  <div class="max-w-6xl mx-auto px-4 py-8 text-center text-sm">
+    <p class="opacity-90">Canal operado por <span data-bind="empresa">[Empresa]</span> em conformidade com a Lei 14.457/2022, NR-01, Lei 12.846/2013, Lei 14.811/2024 e LGPD.</p>
+    <p class="opacity-75 mt-2 text-xs">Em risco grave, ligue 192 (SAMU) ou 188 (CVV) imediatamente.</p>
+    <p class="opacity-60 mt-4 text-xs">Powered by Kit SOC-01 · Psi.se Soluções · <a href="?setup=1" class="underline opacity-70 hover:opacity-100">admin</a></p>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+// CONFIG · padrão + injetado + localStorage
+// ============================================================
+const DEFAULT_CONFIG = {
+  empresa: 'Ativar HSE',
+  email: 'canal.etica@ativarhse.com.br',
+  telefone: '(38) 99929-0014',
+  apoioPsi: '(38) 99929-0014',
+  dpoNome: 'Rosilene Vasconcelos Machado',
+  dpoEmail: 'dpo@ativarhse.com.br',
+  corPrimaria: '#071526',
+  corSecundaria: '#00c6f0',
+  logoBase64: '',
+  senhaAdminHash: '',
+  configuradoEm: null,
+  versao: '1.1-wizard'
+};
+
+const STORAGE_CFG = 'soc01_config_v1';
+const STORAGE_PROT = 'soc01_protocolos_v1';
+const STORAGE_AUTH = 'soc01_auth_session';
+
+let CONFIG = {};
+
+function carregarConfig() {
+  // Prioridade: window.__CONFIG__ (injetado no export) > localStorage > DEFAULT
+  let saved = null;
+  if (window.__CONFIG__) saved = window.__CONFIG__;
+  else { try { saved = JSON.parse(localStorage.getItem(STORAGE_CFG) || 'null'); } catch {} }
+  CONFIG = Object.assign({}, DEFAULT_CONFIG, saved || {});
+}
+
+function aplicarConfig() {
+  // Cores
+  document.documentElement.style.setProperty('--c-primaria', CONFIG.corPrimaria);
+  document.documentElement.style.setProperty('--c-secundaria', CONFIG.corSecundaria);
+  // Textos
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    const k = el.getAttribute('data-bind');
+    if (CONFIG[k] !== undefined) el.textContent = CONFIG[k];
+  });
+  // Logo
+  const logo = document.getElementById('logoImg');
+  if (CONFIG.logoBase64) { logo.src = CONFIG.logoBase64; logo.classList.remove('hidden'); }
+  else { logo.classList.add('hidden'); }
+  // Title
+  document.title = `Canal de Denúncias · ${CONFIG.empresa}`;
+}
+
+// ============================================================
+// PROTOCOLOS
+// ============================================================
+function carregarProtocolos() { try { return JSON.parse(localStorage.getItem(STORAGE_PROT) || '[]'); } catch { return []; } }
+function salvarProtocolos(arr) { localStorage.setItem(STORAGE_PROT, JSON.stringify(arr)); }
+function gerarProtocolo() {
+  const ano = new Date().getFullYear();
+  const seq = String(carregarProtocolos().length + 1).padStart(4, '0');
+  return `SOC-${ano}-${seq}`;
+}
+
+// ============================================================
+// NAVEGAÇÃO
+// ============================================================
+const VIEWS = ['home','formulario','sucesso','consulta','faq','setup','admin','auth','onboard'];
+function goto(view) {
+  VIEWS.forEach(v => document.getElementById('view-'+v).classList.add('hidden'));
+  document.getElementById('view-'+view).classList.remove('hidden');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+// ============================================================
+// FORM · STEPS
+// ============================================================
+const TIPOS = [
+  {v:'Assédio moral', d:'Hostilidade reiterada, humilhação, perseguição'},
+  {v:'Assédio sexual', d:'Constrangimento, contato indesejado, chantagem'},
+  {v:'Discriminação', d:'Raça, gênero, idade, religião, orientação, deficiência'},
+  {v:'Fraude/corrupção', d:'Suborno, desvio, conflito de interesse'},
+  {v:'Risco psicossocial', d:'Sobrecarga grave, ideação suicida, ameaça'},
+  {v:'Vazamento LGPD', d:'Acesso indevido, vazamento, perda de dados'},
+  {v:'Violência criança/adolescente', d:'Ato com qualquer menor de 18 anos'},
+  {v:'Pedido de apoio Psi', d:'Pedido de apoio sem denunciar ninguém'},
+  {v:'Outro', d:'Descreverei nas etapas seguintes'},
+];
+function renderTipos() {
+  const c = document.getElementById('tipos-grid');
+  c.innerHTML = TIPOS.map((t,i) => `
+    <label class="cursor-pointer ${i === TIPOS.length-1 ? 'md:col-span-2' : ''}">
+      <input type="radio" name="tipo" value="${escapeHtml(t.v)}" class="hidden peer" ${i===0?'required':''}>
+      <div class="border-2 border-gray-200 peer-checked:destaque-border peer-checked:destaque-bg rounded-lg p-4 transition">
+        <div class="font-semibold text-primaria">${escapeHtml(t.v)}</div>
+        <div class="text-xs">${escapeHtml(t.d)}</div>
+      </div></label>`).join('');
+}
+
+const FAQS = [
+  {q:'Posso denunciar sem me identificar?', a:'Sim. Todos os canais digitais aceitam denúncia anônima. Você recebe um protocolo único e acompanha o caso por ele, sem precisar revelar quem é.'},
+  {q:'Quem terá acesso ao que eu disser?', a:'Apenas os membros formais do Comitê de Ética e profissionais designados pela investigação — todos vinculados a Termo de Confidencialidade indeterminado. Seu gestor, seu colega e o RH em geral NÃO terão acesso ao conteúdo.'},
+  {q:'E se eu sofrer retaliação?', a:'Retaliação é falta gravíssima e leva a demissão por justa causa do retaliador. Comunique imediatamente ao Comitê pelo mesmo canal. O monitoramento do ambiente posterior à denúncia é parte do procedimento.'},
+  {q:'Posso pedir apoio psicológico mesmo sem denunciar ninguém?', a:'Sim. Acesse o canal pela opção "Apoio psicológico" e você terá triagem clínica e encaminhamento — independente de qualquer denúncia. Custeado pela empresa em todas as hipóteses.'},
+  {q:'Quanto tempo leva para a empresa responder?', a:'48h para confirmação · 5 dias úteis para triagem · 30 a 60 dias para investigação completa · feedback formal após o desfecho. Se houver risco grave, o tratamento é imediato.'},
+  {q:'Quais são os meus direitos sobre os dados que forneci?', a:'A LGPD (art. 18) garante 10 direitos: confirmação, acesso, correção, anonimização/bloqueio/eliminação de dados desnecessários, portabilidade, eliminação dos tratados com consentimento, informação sobre compartilhamento, revogação de consentimento, oposição e petição à ANPD. Para exercer, contate o DPO. SLA de 15 dias.'},
+  {q:'E se eu não concordar com o desfecho?', a:'Você tem 5 dias úteis para apresentar recurso interno. O recurso é apreciado por composição diversa do Comitê. Em paralelo, você pode peticionar à ANPD em casos de tratamento de dados ou ao Ministério Público em casos de relevância pública.'},
+];
+function renderFaq() {
+  document.getElementById('faq-container').innerHTML = FAQS.map(f => `
+    <details class="bg-white rounded-lg shadow border border-gray-100">
+      <summary class="p-5 flex justify-between items-center font-semibold text-primaria">
+        <span>${escapeHtml(f.q)}</span>
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </summary>
+      <div class="px-5 pb-5 text-sm">${escapeHtml(f.a)}</div>
+    </details>`).join('');
+}
+
+let currentStep = 1;
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('step'+i).classList.add('hidden');
+    const el = document.getElementById('s'+i);
+    el.classList.remove('step-active','step-pending','step-done');
+    if (i < n) el.classList.add('step-done');
+    else if (i === n) el.classList.add('step-active');
+    else el.classList.add('step-pending');
+  }
+  document.getElementById('step'+n).classList.remove('hidden');
+  currentStep = n;
+}
+function next(from) {
+  if (from === 1) { if (!document.querySelector('input[name="tipo"]:checked')) return toast('Selecione o tipo da manifestação', 'erro'); setStep(2); }
+  else if (from === 2) {
+    const id = document.querySelector('input[name="identificacao"]:checked');
+    if (!id) return toast('Indique se quer se identificar', 'erro');
+    if (id.value === 'identificado') {
+      if (!document.getElementById('nome').value.trim()) return toast('Informe seu nome', 'erro');
+      if (!document.getElementById('email-id').value.trim()) return toast('Informe seu e-mail', 'erro');
+      if (!document.getElementById('lgpd').checked) return toast('Aceite a Política de Privacidade', 'erro');
+    }
+    setStep(3);
+  } else if (from === 3) {
+    if (document.getElementById('relato').value.trim().length < 50) return toast('Relato precisa ter ao menos 50 caracteres', 'erro');
+    montarResumo(); setStep(4);
+  }
+}
+function back(from) { if (from > 1) setStep(from - 1); }
+
+document.addEventListener('change', e => {
+  if (e.target.name === 'identificacao') {
+    document.getElementById('campos-identificado').classList.toggle('hidden', e.target.value !== 'identificado');
+  }
+});
+
+function montarResumo() {
+  const tipo = document.querySelector('input[name="tipo"]:checked').value;
+  const id = document.querySelector('input[name="identificacao"]:checked').value;
+  let html = `<div><strong>Tipo:</strong> ${escapeHtml(tipo)}</div>`;
+  html += `<div><strong>Modo:</strong> ${id === 'anonimo' ? 'Anônimo' : 'Identificado'}</div>`;
+  if (id === 'identificado') {
+    html += `<div><strong>Nome:</strong> ${escapeHtml(document.getElementById('nome').value)}</div>`;
+    html += `<div><strong>E-mail:</strong> ${escapeHtml(document.getElementById('email-id').value)}</div>`;
+    const v = document.getElementById('vinculo').value;
+    if (v) html += `<div><strong>Vínculo:</strong> ${escapeHtml(v)}</div>`;
+  }
+  html += `<div><strong>Quando:</strong> ${escapeHtml(document.getElementById('quando').value || '—')}</div>`;
+  html += `<div><strong>Onde:</strong> ${escapeHtml(document.getElementById('onde').value || '—')}</div>`;
+  const test = document.getElementById('testemunhas').value;
+  if (test) html += `<div><strong>Testemunhas:</strong> ${escapeHtml(test)}</div>`;
+  html += `<div><strong>Acolhimento Psi:</strong> ${document.getElementById('acolhimento').checked ? 'Sim' : 'Não'}</div>`;
+  html += `<div class="pt-2 mt-2 border-t"><strong>Relato:</strong><br><span class="text-xs whitespace-pre-line">${escapeHtml(document.getElementById('relato').value)}</span></div>`;
+  document.getElementById('resumo').innerHTML = html;
+}
+
+function enviar() {
+  const protocolo = gerarProtocolo();
+  const id = document.querySelector('input[name="identificacao"]:checked').value;
+  const reg = {
+    protocolo,
+    timestamp: new Date().toISOString(),
+    tipo: document.querySelector('input[name="tipo"]:checked').value,
+    modo: id,
+    nome: id === 'identificado' ? document.getElementById('nome').value.trim() : null,
+    email: id === 'identificado' ? document.getElementById('email-id').value.trim() : null,
+    telefone: id === 'identificado' ? document.getElementById('telefone-id').value.trim() : null,
+    vinculo: id === 'identificado' ? document.getElementById('vinculo').value : null,
+    quando: document.getElementById('quando').value.trim(),
+    onde: document.getElementById('onde').value.trim(),
+    testemunhas: document.getElementById('testemunhas').value.trim(),
+    acolhimento: document.getElementById('acolhimento').checked,
+    relato: document.getElementById('relato').value.trim(),
+    status: 'recebido',
+    historico: [{ data: new Date().toISOString(), evento: 'Protocolo registrado · aguardando confirmação em até 48h' }]
+  };
+  const arr = carregarProtocolos(); arr.push(reg); salvarProtocolos(arr);
+  document.getElementById('protocoloGerado').textContent = protocolo;
+  document.getElementById('form').reset();
+  document.getElementById('campos-identificado').classList.add('hidden');
+  setStep(1); goto('sucesso');
+}
+
+function consultar() {
+  const p = document.getElementById('consultaProtocolo').value.trim().toUpperCase();
+  const reg = carregarProtocolos().find(r => r.protocolo === p);
+  const div = document.getElementById('resultadoConsulta');
+  if (!reg) {
+    div.innerHTML = `<div class="bg-red-100 border-l-4 border-red-700 p-4 rounded text-sm">Protocolo não encontrado neste dispositivo.</div>`;
+    return;
+  }
+  let html = `<div class="bg-gray-50 border-2 border-gray-100 rounded-lg p-5 space-y-2 text-sm">
+    <div class="flex justify-between"><span class="font-bold text-primaria">Protocolo</span><span class="font-mono">${escapeHtml(reg.protocolo)}</span></div>
+    <div class="flex justify-between"><span class="font-bold text-primaria">Tipo</span><span>${escapeHtml(reg.tipo)}</span></div>
+    <div class="flex justify-between"><span class="font-bold text-primaria">Status</span><span class="px-2 py-0.5 bg-secundaria text-white rounded text-xs">${escapeHtml(reg.status)}</span></div>
+    <div class="flex justify-between"><span class="font-bold text-primaria">Registrado em</span><span>${new Date(reg.timestamp).toLocaleString('pt-BR')}</span></div>
+    <div class="pt-3 border-t"><strong class="text-primaria">Histórico</strong><ul class="mt-2 space-y-2">${reg.historico.map(h => `<li class="text-xs"><span class="text-gray-500">${new Date(h.data).toLocaleString('pt-BR')}</span> · ${escapeHtml(h.evento)}</li>`).join('')}</ul></div></div>`;
+  div.innerHTML = html;
+}
+
+// ============================================================
+// SETUP WIZARD
+// ============================================================
+function bindSetupForm() {
+  ['empresa','email','telefone','apoioPsi','dpoNome','dpoEmail','corPrimaria','corSecundaria'].forEach(k => {
+    const el = document.getElementById('cfg-'+k);
+    if (!el) return;
+    el.value = CONFIG[k] || '';
+    el.addEventListener('input', () => atualizarPreview());
+  });
+  document.getElementById('cfg-corPrimaria-pick').value = CONFIG.corPrimaria;
+  document.getElementById('cfg-corSecundaria-pick').value = CONFIG.corSecundaria;
+  document.getElementById('cfg-corPrimaria-pick').addEventListener('input', e => {
+    document.getElementById('cfg-corPrimaria').value = e.target.value; atualizarPreview();
+  });
+  document.getElementById('cfg-corSecundaria-pick').addEventListener('input', e => {
+    document.getElementById('cfg-corSecundaria').value = e.target.value; atualizarPreview();
+  });
+  document.getElementById('cfg-corPrimaria').addEventListener('input', e => {
+    document.getElementById('cfg-corPrimaria-pick').value = e.target.value; atualizarPreview();
+  });
+  document.getElementById('cfg-corSecundaria').addEventListener('input', e => {
+    document.getElementById('cfg-corSecundaria-pick').value = e.target.value; atualizarPreview();
+  });
+  document.getElementById('cfg-logoFile').addEventListener('change', handleLogo);
+  document.getElementById('btnRemoverLogo').classList.toggle('hidden', !CONFIG.logoBase64);
+  atualizarPreview();
+}
+
+function handleLogo(e) {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > 200*1024) { toast('Logo acima de 200KB · use imagem menor', 'erro'); e.target.value=''; return; }
+  const r = new FileReader();
+  r.onload = ev => { CONFIG.logoBase64 = ev.target.result; document.getElementById('btnRemoverLogo').classList.remove('hidden'); atualizarPreview(); };
+  r.readAsDataURL(f);
+}
+function removerLogo() {
+  CONFIG.logoBase64 = ''; document.getElementById('cfg-logoFile').value=''; document.getElementById('btnRemoverLogo').classList.add('hidden'); atualizarPreview();
+}
+
+function atualizarPreview() {
+  const get = id => document.getElementById('cfg-'+id).value;
+  const cp = get('corPrimaria') || '#1A365D';
+  const cs = get('corSecundaria') || '#C05621';
+  const hdr = document.getElementById('preview-header');
+  hdr.style.background = `linear-gradient(135deg, ${cp} 0%, ${shade(cp, 0.25)} 100%)`;
+  document.getElementById('preview-empresa').textContent = get('empresa') || '[Nome da Empresa]';
+  document.getElementById('preview-email').textContent = get('email') || '—';
+  document.getElementById('preview-telefone').textContent = get('telefone') || '—';
+  document.getElementById('preview-dpoNome').textContent = get('dpoNome') || '—';
+  document.getElementById('preview-dpoEmail').textContent = get('dpoEmail') || '—';
+  document.getElementById('preview-apoioPsi').textContent = get('apoioPsi') || '—';
+  document.getElementById('preview-btn').style.background = cs;
+  const pl = document.getElementById('preview-logo');
+  if (CONFIG.logoBase64) { pl.src = CONFIG.logoBase64; pl.classList.remove('hidden'); }
+  else { pl.classList.add('hidden'); }
+}
+function shade(hex, p) {
+  // simple lighten
+  const c = hex.replace('#',''); const n = parseInt(c,16);
+  let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  r=Math.min(255, Math.round(r+(255-r)*p)); g=Math.min(255, Math.round(g+(255-g)*p)); b=Math.min(255, Math.round(b+(255-b)*p));
+  return `#${[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('')}`;
+}
+
+async function salvarConfig() {
+  const c = Object.assign({}, CONFIG);
+  ['empresa','email','telefone','apoioPsi','dpoNome','dpoEmail','corPrimaria','corSecundaria'].forEach(k => {
+    c[k] = document.getElementById('cfg-'+k).value.trim() || DEFAULT_CONFIG[k];
+  });
+  const novaSenha = document.getElementById('cfg-senhaAdmin').value;
+  if (novaSenha) {
+    if (novaSenha.length < 8) return toast('Senha precisa ter no mínimo 8 caracteres', 'erro');
+    c.senhaAdminHash = await sha256(novaSenha);
+  }
+  c.configuradoEm = new Date().toISOString();
+  CONFIG = c;
+  localStorage.setItem(STORAGE_CFG, JSON.stringify(c));
+  aplicarConfig();
+  toast('Configuração salva · F5 para recarregar tudo', 'sucesso');
+}
+function resetarConfig() {
+  if (!confirm('Apagar configuração e voltar ao padrão? (Denúncias não serão apagadas.)')) return;
+  localStorage.removeItem(STORAGE_CFG);
+  sessionStorage.removeItem(STORAGE_AUTH);
+  toast('Configuração apagada', 'sucesso');
+  setTimeout(() => location.href = location.pathname + '?setup=1', 800);
+}
+
+// ============================================================
+// EXPORT HTML PERSONALIZADO
+// ============================================================
+function exportarHTML() {
+  // Atualiza tag de config injetada
+  const cfgPraExportar = Object.assign({}, CONFIG);
+  const inject = document.getElementById('injected-config');
+  inject.textContent = `window.__CONFIG__ = ${JSON.stringify(cfgPraExportar)};`;
+  // Limpa elementos de admin/setup ANTES de serializar? Não — eles ficam no arquivo final, mas só abrem com ?setup=1 ou ?admin=1
+  // Toma o HTML inteiro
+  const blob = new Blob(['<!DOCTYPE html>\n' + document.documentElement.outerHTML], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const nome = (CONFIG.empresa || 'empresa').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'canal';
+  a.href = url; a.download = `canal-${nome}.html`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  // Restaura o injected vazio para a sessão atual continuar funcionando do localStorage
+  inject.textContent = 'window.__CONFIG__ = null;';
+  toast('Arquivo baixado · pronto para entregar ao cliente', 'sucesso');
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function renderAdmin() {
+  const arr = carregarProtocolos();
+  document.getElementById('admin-count').textContent = arr.length;
+  const div = document.getElementById('admin-list');
+  if (!arr.length) { div.innerHTML = '<p class="text-sm text-gray-500">Nenhuma denúncia registrada neste navegador ainda.</p>'; return; }
+  div.innerHTML = arr.slice().reverse().map(r => `
+    <details class="border-2 border-gray-100 rounded-lg">
+      <summary class="p-4 flex justify-between items-center hover:bg-gray-50">
+        <div>
+          <div class="font-mono font-bold text-primaria">${escapeHtml(r.protocolo)}</div>
+          <div class="text-xs text-gray-500">${new Date(r.timestamp).toLocaleString('pt-BR')} · ${escapeHtml(r.tipo)} · ${r.modo === 'anonimo' ? 'Anônimo' : 'Identificado'}</div>
+        </div>
+        <span class="px-2 py-1 bg-secundaria text-white rounded text-xs">${escapeHtml(r.status)}</span>
+      </summary>
+      <div class="p-4 border-t bg-gray-50 text-sm space-y-2">
+        ${r.nome ? `<div><strong>Nome:</strong> ${escapeHtml(r.nome)}</div>` : ''}
+        ${r.email ? `<div><strong>E-mail:</strong> ${escapeHtml(r.email)}</div>` : ''}
+        ${r.telefone ? `<div><strong>Telefone:</strong> ${escapeHtml(r.telefone)}</div>` : ''}
+        ${r.vinculo ? `<div><strong>Vínculo:</strong> ${escapeHtml(r.vinculo)}</div>` : ''}
+        ${r.quando ? `<div><strong>Quando:</strong> ${escapeHtml(r.quando)}</div>` : ''}
+        ${r.onde ? `<div><strong>Onde:</strong> ${escapeHtml(r.onde)}</div>` : ''}
+        ${r.testemunhas ? `<div><strong>Testemunhas:</strong> ${escapeHtml(r.testemunhas)}</div>` : ''}
+        <div><strong>Acolhimento Psi:</strong> ${r.acolhimento ? 'Sim' : 'Não'}</div>
+        <div class="pt-2 border-t mt-2"><strong>Relato:</strong><div class="whitespace-pre-line mt-1 bg-white p-3 rounded border">${escapeHtml(r.relato)}</div></div>
+      </div>
+    </details>`).join('');
+}
+function exportarDenuncias() {
+  const arr = carregarProtocolos();
+  const blob = new Blob([JSON.stringify(arr, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `denuncias-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ============================================================
+// AUTENTICAÇÃO
+// ============================================================
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function isAutenticado() { return sessionStorage.getItem(STORAGE_AUTH) === '1'; }
+function autenticarSessao() { sessionStorage.setItem(STORAGE_AUTH, '1'); }
+
+let destinoApósAuth = 'setup';
+async function autenticar() {
+  const senha = document.getElementById('auth-senha').value;
+  if (!senha) return toast('Digite a senha', 'erro');
+  const hash = await sha256(senha);
+  if (hash === CONFIG.senhaAdminHash) {
+    autenticarSessao();
+    document.getElementById('auth-senha').value = '';
+    iniciarRota(destinoApósAuth);
+  } else {
+    toast('Senha incorreta', 'erro');
+  }
+}
+async function definirSenhaInicial() {
+  const s1 = document.getElementById('onboard-senha').value;
+  const s2 = document.getElementById('onboard-senha2').value;
+  if (s1.length < 8) return toast('Mínimo 8 caracteres', 'erro');
+  if (s1 !== s2) return toast('Senhas não coincidem', 'erro');
+  CONFIG.senhaAdminHash = await sha256(s1);
+  CONFIG.configuradoEm = new Date().toISOString();
+  localStorage.setItem(STORAGE_CFG, JSON.stringify(CONFIG));
+  autenticarSessao();
+  toast('Senha definida · abrindo configuração...', 'sucesso');
+  setTimeout(() => iniciarRota('setup'), 600);
+}
+
+// ============================================================
+// ROTEAMENTO
+// ============================================================
+function iniciarRota(forcado) {
+  const params = new URLSearchParams(location.search);
+  const rota = forcado || (params.has('setup') ? 'setup' : params.has('admin') ? 'admin' : 'home');
+
+  if (rota === 'setup' || rota === 'admin') {
+    if (!CONFIG.senhaAdminHash) {
+      goto('onboard'); return;
+    }
+    if (!isAutenticado()) {
+      destinoApósAuth = rota;
+      document.getElementById('auth-msg').textContent = rota === 'admin' ? 'Painel admin · acesso restrito ao Comitê' : 'Configuração · acesso restrito ao administrador';
+      document.getElementById('auth-hint').textContent = rota === 'admin' ? 'Digite a senha definida no Setup Wizard.' : '';
+      goto('auth');
+      return;
+    }
+    if (rota === 'setup') { bindSetupForm(); goto('setup'); }
+    else { renderAdmin(); goto('admin'); }
+    return;
+  }
+  goto('home');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escapeHtml(t) {
+  if (t === null || t === undefined) return '';
+  return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function toast(msg, tipo = 'info') {
+  const el = document.getElementById('toast');
+  const cor = tipo === 'erro' ? 'bg-red-700' : tipo === 'sucesso' ? 'bg-green-700' : 'bg-primaria';
+  el.innerHTML = `<div class="${cor} text-white px-5 py-3 rounded-lg shadow-lg font-medium text-sm">${escapeHtml(msg)}</div>`;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+carregarConfig();
+aplicarConfig();
+renderTipos();
+renderFaq();
+setStep(1);
+iniciarRota();
+
+document.getElementById('auth-senha').addEventListener('keydown', e => { if (e.key === 'Enter') autenticar(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !['auth','onboard'].includes(currentView())) goto('home'); });
+function currentView() {
+  return VIEWS.find(v => !document.getElementById('view-'+v).classList.contains('hidden')) || 'home';
+}
+</script>
+
+</body>
+</html>
